@@ -1,3 +1,6 @@
+.vscode/symbols.json
+dist
+
 # Logs
 logs
 *.log

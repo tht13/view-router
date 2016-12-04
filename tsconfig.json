@@ -1,0 +1,25 @@
+{
+    "compilerOptions": {
+        "target": "es6",
+        "module": "commonjs",
+        "sourceMap": true,
+        "outDir": "./dist",
+        "allowSyntheticDefaultImports": false,
+        "allowUnreachableCode": false,
+        "allowUnusedLabels": false,
+        "allowJs": true,
+        "forceConsistentCasingInFileNames": true,
+        "inlineSources": true,
+        "listFiles": true,
+        "noFallthroughCasesInSwitch": true,
+        "noImplicitReturns": true,
+        "noImplicitThis": true,
+        "pretty": true,
+        "traceResolution": true
+    },
+    "exclude": [
+        "node_modules",
+        "dist"
+    ]
+}
+
