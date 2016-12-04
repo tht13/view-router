@@ -97,6 +97,7 @@ class ViewRouter {
 }
 
 export function viewRouter(options?: IViewRouterOptions);
+export function viewRouter(views: IViewConfig[], options?: IViewRouterOptions);
 export function viewRouter(views: IViewConfig[], options?: IViewRouterOptions) {
   if (isNil(views)) {
     const readPath = (!isNil(options) && !isNil(options.configFilePath)) ? options.configFilePath : DEFAULT_CONFIG_PATH;
