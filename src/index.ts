@@ -23,12 +23,16 @@ export interface IViewConfig {
 
 export interface IViewRouterOptions {
   basePath?: string;
+  configFilePath?: string;
   basicContentGenerator?: (req?: express.Request, res?: express.Response) => any;
 }
+
+const DEFAULT_CONFIG_PATH = "vrconfig.json"
 
 class ViewRouter {
   private views: Map<string, IViewConfig> = new Map();
   private path: string = "";
+
   constructor(views: IViewConfig[], private options: IViewRouterOptions = {}) {
     for (const view of views) {
       if (view.urlPath.constructor === Array) {
@@ -92,7 +96,12 @@ class ViewRouter {
   }
 }
 
+export function viewRouter(options?: IViewRouterOptions);
 export function viewRouter(views: IViewConfig[], options?: IViewRouterOptions) {
+  if (isNil(views)) {
+    const readPath = (!isNil(options) && !isNil(options.configFilePath)) ? options.configFilePath : DEFAULT_CONFIG_PATH;
+    views = require(DEFAULT_CONFIG_PATH);
+  }
   const vr = new ViewRouter(views, options);
   return (req: express.Request, res: express.Response, next: express.NextFunction) => {
     vr.handle(req, res, next);
