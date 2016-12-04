@@ -11,7 +11,7 @@ const out = "./dist";
 const src = ["./src/**/*.ts", "./src/**/*.d.ts", "./src/**/*.js"];
 
 gulp.task("clean", () => {
-    del(out);
+    return del(out);
 });
 
 let tsProject = ts.createProject("tsconfig.json");
