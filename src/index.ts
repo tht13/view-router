@@ -1,7 +1,9 @@
 import * as express from "express";
 import * as assert from "assert";
 import { isNil } from "lodash";
+import { join } from "path";
 
+export type ContextFunction = (req: express.Request, res: express.Response) => any;
 export interface IView {
   checkRouteValid?(): Promise<boolean>;
   getContext(): Promise<{}>;
@@ -20,11 +22,13 @@ export interface IViewConfig {
 }
 
 export interface IViewRouterOptions {
+  basePath?: string;
   basicContentGenerator?: (req?: express.Request, res?: express.Response) => any;
 }
 
 class ViewRouter {
   private views: Map<string, IViewConfig> = new Map();
+  private path: string = "";
   constructor(views: IViewConfig[], private options: IViewRouterOptions = {}) {
     for (const view of views) {
       if (view.urlPath.constructor === Array) {
@@ -36,6 +40,9 @@ class ViewRouter {
         assert.equal(this.views.has(view.urlPath as string), false);
         this.views.set(view.urlPath as string, view);
       }
+    }
+    if (!isNil(options.basePath)) { 
+      this.path = options.basePath;
     }
   }
 
@@ -56,7 +63,7 @@ class ViewRouter {
       this.handleAsClass(contextImport as IViewConstructor, req, res);
 
     res.render((isNil(viewConfig.layout)) ? viewConfig.id : viewConfig.layout, context)
-    }
+  }
 
   private async handleAsClass(viewConstructor: IViewConstructor, req: express.Request, res: express.Response): Promise<{}> {
     const view: IView = (isNil(viewConstructor)) ? this.getDefaultView(req, res) : new viewConstructor(req, res);
@@ -68,7 +75,7 @@ class ViewRouter {
       view.setBasicContext(this.options.basicContentGenerator(req, res));
     }
     return view.getContext();
-    }
+  }
 
   private async handleAsFunction(handlerFunction: ContextFunction, req: express.Request, res: express.Response): Promise<{}> {
     return await handlerFunction(req, res);
