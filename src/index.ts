@@ -20,7 +20,7 @@ export interface IViewConfig {
 }
 
 export interface IViewRouterOptions {
-  basicContectGenerator?: (req?: express.Request, res?: express.Response) => any;
+  basicContentGenerator?: (req?: express.Request, res?: express.Response) => any;
 }
 
 class ViewRouter {
@@ -54,8 +54,8 @@ class ViewRouter {
       res.end();
       return;
     }
-    if (!isNil(this.options.basicContectGenerator)) {
-      view.setBasicContext(this.options.basicContectGenerator(req, res));
+    if (!isNil(this.options.basicContentGenerator)) {
+      view.setBasicContext(this.options.basicContentGenerator(req, res));
     }
     view.getContext().then(v =>
       res.render((isNil(viewConfig.layout)) ? viewConfig.id : viewConfig.layout, v)
@@ -64,7 +64,7 @@ class ViewRouter {
   private getDefaultView(req: express.Request, res: express.Response): IView {
     return {
       getContext: () => Promise.resolve(
-        (isNil(this.options.basicContectGenerator)) ? void 0 : this.options.basicContectGenerator(req, res)
+        (isNil(this.options.basicContentGenerator)) ? void 0 : this.options.basicContentGenerator(req, res)
       ),
       setBasicContext: ctx => void 0,
       checkRouteValid: () => Promise.resolve(true)
