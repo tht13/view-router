@@ -44,23 +44,36 @@ class ViewRouter {
     await this.getView(req, res, view);
     next();
   }
+
   private async getView(req: express.Request, res: express.Response, viewConfig: IViewConfig): Promise<void> {
-    let viewConstructor: IViewConstructor = null;
+    let contextImport: IViewConstructor | ContextFunction = null;
     if (!isNil(viewConfig.viewHandlerPath)) {
-      viewConstructor = require(viewConfig.viewHandlerPath).default;
+      contextImport = require(join(this.path, viewConfig.viewHandlerPath)).default;
     }
+
+    const context = await (contextImport instanceof Function) ?
+      this.handleAsFunction(contextImport as ContextFunction, req, res) :
+      this.handleAsClass(contextImport as IViewConstructor, req, res);
+
+    res.render((isNil(viewConfig.layout)) ? viewConfig.id : viewConfig.layout, context)
+    }
+
+  private async handleAsClass(viewConstructor: IViewConstructor, req: express.Request, res: express.Response): Promise<{}> {
     const view: IView = (isNil(viewConstructor)) ? this.getDefaultView(req, res) : new viewConstructor(req, res);
     if (!isNil(view.checkRouteValid) && await !view.checkRouteValid()) {
       res.end();
-      return;
+      return {};
     }
     if (!isNil(this.options.basicContentGenerator)) {
       view.setBasicContext(this.options.basicContentGenerator(req, res));
     }
-    view.getContext().then(v =>
-      res.render((isNil(viewConfig.layout)) ? viewConfig.id : viewConfig.layout, v)
-    );
+    return view.getContext();
+    }
+
+  private async handleAsFunction(handlerFunction: ContextFunction, req: express.Request, res: express.Response): Promise<{}> {
+    return await handlerFunction(req, res);
   }
+
   private getDefaultView(req: express.Request, res: express.Response): IView {
     return {
       getContext: () => Promise.resolve(
