@@ -3,10 +3,10 @@ import * as assert from "assert";
 import { isNil } from "lodash";
 import { join } from "path";
 
-export type ContextFunction = (req: express.Request, res: express.Response) => any;
+export type ContextFunction = (req: express.Request, res: express.Response) => Promise<{}> | {};
 export interface IView {
-  checkRouteValid?(): Promise<boolean>;
-  getContext(): Promise<{}>;
+  checkRouteValid?(): Promise<boolean> | boolean;
+  getContext(): Promise<{}> | {};
   setBasicContext(ctx: {}): void;
 }
 
@@ -78,7 +78,7 @@ class ViewRouter {
   }
 
   private async handleAsFunction(handlerFunction: ContextFunction, req: express.Request, res: express.Response): Promise<{}> {
-    return await handlerFunction(req, res);
+    return handlerFunction(req, res);
   }
 
   private getDefaultView(req: express.Request, res: express.Response): IView {
