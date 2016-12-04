@@ -7,7 +7,6 @@
         "allowSyntheticDefaultImports": false,
         "allowUnreachableCode": false,
         "allowUnusedLabels": false,
-        "allowJs": true,
         "forceConsistentCasingInFileNames": true,
         "inlineSources": true,
         "listFiles": true,
@@ -15,7 +14,9 @@
         "noImplicitReturns": true,
         "noImplicitThis": true,
         "pretty": true,
-        "traceResolution": true
+        "traceResolution": true,
+        "declaration": true,
+        "declarationDir": "./definitions"
     },
     "exclude": [
         "node_modules",

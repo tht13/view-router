@@ -12,14 +12,14 @@ export interface IViewConstructor {
   new (req: express.Request, res: express.Response): IView;
 }
 
-interface IViewConfig {
+export interface IViewConfig {
   id: string;
   urlPath: string | string[];
   layout?: string;
   viewHandlerPath?: string;
 }
 
-interface IViewRouterOptions {
+export interface IViewRouterOptions {
   basicContectGenerator?: (req?: express.Request, res?: express.Response) => any;
 }
 
