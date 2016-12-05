@@ -62,8 +62,8 @@ class ViewRouter {
       )).default;
 
     const context = await (contextImport.prototype.constructor === contextImport) ?
-      this.handleAsFunction(contextImport as ContextFunction, req, res) :
-      this.handleAsClass(contextImport as IViewConstructor, req, res);
+      this.handleAsClass(contextImport as IViewConstructor, req, res) :
+      this.handleAsFunction(contextImport as ContextFunction, req, res);
 
     res.render((isNil(viewConfig.layout)) ? viewConfig.id : viewConfig.layout, context)
   }
