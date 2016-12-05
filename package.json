@@ -1,6 +1,6 @@
 {
   "name": "view-router",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "A view router for express.js where a config file is passed in and routes are automatically setup to connect rendered viewlets",
   "main": "dist/index.js",
   "scripts": {
