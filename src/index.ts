@@ -57,11 +57,11 @@ class ViewRouter {
 
   private async getView(req: express.Request, res: express.Response, viewConfig: IViewConfig): Promise<void> {
     let contextImport: IViewConstructor | ContextFunction = null;
-    if (!isNil(viewConfig.viewHandlerPath)) {
-      contextImport = require(ViewRouter.getPath(viewConfig.viewHandlerPath)).default;
-    }
+    contextImport = require(ViewRouter.getPath(
+      isNil(viewConfig.viewHandlerPath) ? viewConfig.id : viewConfig.viewHandlerPath
+      )).default;
 
-    const context = await (contextImport instanceof Function) ?
+    const context = await (contextImport.prototype.constructor === contextImport) ?
       this.handleAsFunction(contextImport as ContextFunction, req, res) :
       this.handleAsClass(contextImport as IViewConstructor, req, res);
 
