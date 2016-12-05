@@ -1,7 +1,7 @@
 import * as express from "express";
 import * as assert from "assert";
 import { isNil } from "lodash";
-import { join } from "path";
+import { join, extname } from "path";
 
 export type ContextFunction = (req: express.Request, res: express.Response) => Promise<{}> | {};
 export interface IView {
@@ -31,10 +31,12 @@ const DEFAULT_CONFIG_PATH = "vrconfig.json"
 
 class ViewRouter {
   private views: Map<string, IViewConfig> = new Map();
-  private path: string = "";
+  public static path: string = process.cwd();
 
   constructor(views: IViewConfig[], private options: IViewRouterOptions = {}) {
     for (const view of views) {
+      assert.ok(view.id, "View has no id");
+      assert.ok(view.urlPath, "View has no url path");
       if (view.urlPath.constructor === Array) {
         for (const path of view.urlPath) {
           assert.equal(this.views.has(path), false);
@@ -44,9 +46,6 @@ class ViewRouter {
         assert.equal(this.views.has(view.urlPath as string), false);
         this.views.set(view.urlPath as string, view);
       }
-    }
-    if (!isNil(options.basePath)) { 
-      this.path = options.basePath;
     }
   }
 
@@ -59,7 +58,7 @@ class ViewRouter {
   private async getView(req: express.Request, res: express.Response, viewConfig: IViewConfig): Promise<void> {
     let contextImport: IViewConstructor | ContextFunction = null;
     if (!isNil(viewConfig.viewHandlerPath)) {
-      contextImport = require(join(this.path, viewConfig.viewHandlerPath)).default;
+      contextImport = require(ViewRouter.getPath(viewConfig.viewHandlerPath)).default;
     }
 
     const context = await (contextImport instanceof Function) ?
@@ -94,15 +93,25 @@ class ViewRouter {
       checkRouteValid: () => Promise.resolve(true)
     };
   }
+
+  public static getPath(subpath: string): string {
+    return join(this.path, subpath);
+  }
 }
 
 export function viewRouter(options?: IViewRouterOptions);
 export function viewRouter(views: IViewConfig[], options?: IViewRouterOptions);
 export function viewRouter(views: IViewConfig[], options?: IViewRouterOptions) {
-  if (isNil(views)) {
-    const readPath = (!isNil(options) && !isNil(options.configFilePath)) ? options.configFilePath : DEFAULT_CONFIG_PATH;
-    views = require(DEFAULT_CONFIG_PATH);
+  if (!isNil(options) && !isNil(options.basePath)) {
+    ViewRouter.path = options.basePath;
   }
+  if (isNil(views)) {
+    let configReadPath: string = (!isNil(options) && !isNil(options.configFilePath)) ? options.configFilePath : DEFAULT_CONFIG_PATH;
+    assert.equal(extname(configReadPath), ".json", "Not a json file");
+
+    views = require(ViewRouter.getPath(configReadPath));
+  }
+
   const vr = new ViewRouter(views, options);
   return (req: express.Request, res: express.Response, next: express.NextFunction) => {
     vr.handle(req, res, next);
