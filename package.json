@@ -2,10 +2,12 @@
   "name": "view-router",
   "version": "0.1.0",
   "description": "A view router for express.js where a config file is passed in and routes are automatically setup to connect rendered viewlets",
-  "main": "dist-index.js",
+  "main": "dist/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "install": "node_modules/.bin/gulp compile"
   },
+  "types": "dist/index.d.ts",
   "keywords": [
     "express",
     "handlebars",

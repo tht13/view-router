@@ -15,8 +15,7 @@
         "noImplicitThis": true,
         "pretty": true,
         "traceResolution": true,
-        "declaration": true,
-        "declarationDir": "./definitions"
+        "declaration": true
     },
     "exclude": [
         "node_modules",
