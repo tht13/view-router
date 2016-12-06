@@ -61,15 +61,15 @@ class ViewRouter {
       contextImport = require(ViewRouter.getPath(
         isNil(viewConfig.viewHandlerPath) ? viewConfig.id : viewConfig.viewHandlerPath
       )).default;
-    } catch (e) { 
+    } catch (e) {
       console.warn(`Failed to import ${viewConfig.id}`);
     }
 
-    const context = await (isNil(contextImport)) ?
+    const context = await ((isNil(contextImport)) ?
       this.getDefaultView(req, res) :
       (contextImport.prototype.constructor === contextImport) ?
         this.handleAsClass(contextImport as IViewConstructor, req, res) :
-        this.handleAsFunction(contextImport as ContextFunction, req, res);
+        this.handleAsFunction(contextImport as ContextFunction, req, res));
 
     res.render((isNil(viewConfig.layout)) ? viewConfig.id : viewConfig.layout, context)
   }
