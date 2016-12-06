@@ -57,21 +57,28 @@ class ViewRouter {
 
   private async getView(req: express.Request, res: express.Response, viewConfig: IViewConfig): Promise<void> {
     let contextImport: IViewConstructor | ContextFunction = null;
-    contextImport = require(ViewRouter.getPath(
-      isNil(viewConfig.viewHandlerPath) ? viewConfig.id : viewConfig.viewHandlerPath
+    try {
+      contextImport = require(ViewRouter.getPath(
+        isNil(viewConfig.viewHandlerPath) ? viewConfig.id : viewConfig.viewHandlerPath
       )).default;
+    } catch (e) { 
+      console.warn(`Failed to import ${viewConfig.id}`);
+    }
 
-    const context = await (contextImport.prototype.constructor === contextImport) ?
-      this.handleAsClass(contextImport as IViewConstructor, req, res) :
-      this.handleAsFunction(contextImport as ContextFunction, req, res);
+    const context = await (isNil(contextImport)) ?
+      this.getDefaultView(req, res) :
+      (contextImport.prototype.constructor === contextImport) ?
+        this.handleAsClass(contextImport as IViewConstructor, req, res) :
+        this.handleAsFunction(contextImport as ContextFunction, req, res);
 
     res.render((isNil(viewConfig.layout)) ? viewConfig.id : viewConfig.layout, context)
   }
 
   private async handleAsClass(viewConstructor: IViewConstructor, req: express.Request, res: express.Response): Promise<{}> {
-    const view: IView = (isNil(viewConstructor)) ? this.getDefaultView(req, res) : new viewConstructor(req, res);
+    const view: IView = new viewConstructor(req, res);
     if (!isNil(view.checkRouteValid) && await !view.checkRouteValid()) {
-      res.end();
+      // TODO add better clause, throw specific error
+      // res.end();
       return {};
     }
     if (!isNil(this.options.basicContentGenerator)) {
