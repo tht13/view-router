@@ -51,7 +51,9 @@ class ViewRouter {
 
   public async handle(req: express.Request, res: express.Response, next: express.NextFunction) {
     const view = this.views.get(req.path);
-    await this.getView(req, res, view);
+    if (!isNil(view)) {
+      await this.getView(req, res, view);
+    }
     next();
   }
 
@@ -71,7 +73,16 @@ class ViewRouter {
         this.handleAsClass(contextImport as IViewConstructor, req, res) :
         this.handleAsFunction(contextImport as ContextFunction, req, res));
 
-    res.render((isNil(viewConfig.layout)) ? viewConfig.id : viewConfig.layout, context)
+    return new Promise<void>((resolve, reject) => {
+      res.render((isNil(viewConfig.layout)) ? viewConfig.id : viewConfig.layout, context, (err, html) =>{
+        if (err) {
+          return reject(err);
+        }
+        res.setHeader("Content-Type", "text/html; charset=utf-8");
+        res.send(html);
+        resolve();
+      });
+    });
   }
 
   private async handleAsClass(viewConstructor: IViewConstructor, req: express.Request, res: express.Response): Promise<{}> {
