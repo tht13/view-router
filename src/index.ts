@@ -27,7 +27,7 @@ export interface IViewRouterOptions {
   basicContentGenerator?: (req?: express.Request, res?: express.Response) => any;
 }
 
-const DEFAULT_CONFIG_PATH = "vrconfig.json"
+const DEFAULT_CONFIG_PATH = "vrconfig.json";
 
 class ViewRouter {
   private views: Map<string, IViewConfig> = new Map();
@@ -74,7 +74,7 @@ class ViewRouter {
         this.handleAsFunction(contextImport as ContextFunction, req, res));
 
     return new Promise<void>((resolve, reject) => {
-      res.render((isNil(viewConfig.layout)) ? viewConfig.id : viewConfig.layout, context, (err, html) =>{
+      res.render((isNil(viewConfig.layout)) ? viewConfig.id : viewConfig.layout, context, (err, html) => {
         if (err) {
           return reject(err);
         }
