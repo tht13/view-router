@@ -120,23 +120,8 @@ const DEFAULT_CONFIG_PATH = "vrconfig.json";
 
 class ViewRouter {
   private views: Map<string, IViewConfig> = new Map();
-  /**
-   * 
-   * 
-   * @static
-   * @type {string}
-   * @memberOf ViewRouter
-   */
   public static path: string = process.cwd();
 
-  /**
-   * Creates an instance of ViewRouter.
-   * 
-   * @param {IViewConfig[]} views
-   * @param {IViewRouterOptions} [options={}]
-   * 
-   * @memberOf ViewRouter
-   */
   constructor(views: IViewConfig[], private options: IViewRouterOptions = {}) {
     for (const view of views) {
       assert.ok(view.id, "View has no id");
@@ -153,15 +138,6 @@ class ViewRouter {
     }
   }
 
-  /**
-   * 
-   * 
-   * @param {express.Request} req
-   * @param {express.Response} res
-   * @param {express.NextFunction} next
-   * 
-   * @memberOf ViewRouter
-   */
   public async handle(req: express.Request, res: express.Response, next: express.NextFunction) {
     const view = this.views.get(req.path);
     if (!isNil(view)) {
@@ -225,15 +201,6 @@ class ViewRouter {
     };
   }
 
-  /**
-   * 
-   * 
-   * @static
-   * @param {string} subpath
-   * @returns {string}
-   * 
-   * @memberOf ViewRouter
-   */
   public static getPath(subpath: string): string {
     return join(this.path, subpath);
   }
