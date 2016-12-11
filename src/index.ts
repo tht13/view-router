@@ -4,26 +4,115 @@ import { isNil } from "lodash";
 import { join, extname } from "path";
 
 export type ContextFunction = (req: express.Request, res: express.Response) => Promise<{}> | {};
-export interface IView {
+/**
+ * 
+ * 
+ * @export
+ * @interface IView
+ * @template T extends {}
+ */
+export interface IView<T extends {}> {
+  /**
+   * 
+   * 
+   * @returns {(Promise<boolean> | boolean)}
+   * 
+   * @memberOf IView
+   */
   checkRouteValid?(): Promise<boolean> | boolean;
-  getContext(): Promise<{}> | {};
-  setBasicContext(ctx: {}): void;
+  /**
+   * 
+   * 
+   * @returns {(Promise<T> | T)}
+   * 
+   * @memberOf IView
+   */
+  getContext(): Promise<T> | T;
+  /**
+   * 
+   * 
+   * @param {Partial<T>} ctx
+   * 
+   * @memberOf IView
+   */
+  setBasicContext(ctx: Partial<T>): void;
 }
 
-export interface IViewConstructor {
-  new (req: express.Request, res: express.Response): IView;
+/**
+ * 
+ * 
+ * @export
+ * @interface IViewConstructor
+ * @template T extends {}
+ */
+export interface IViewConstructor<T extends {}> {
+  new (req: express.Request, res: express.Response): IView<T>;
 }
 
+/**
+ * 
+ * 
+ * @export
+ * @interface IViewConfig
+ */
 export interface IViewConfig {
+  /**
+   * 
+   * 
+   * @type {string}
+   * @memberOf IViewConfig
+   */
   id: string;
+  /**
+   * 
+   * 
+   * @type {(string | string[])}
+   * @memberOf IViewConfig
+   */
   urlPath: string | string[];
+  /**
+   * 
+   * 
+   * @type {string}
+   * @memberOf IViewConfig
+   */
   layout?: string;
+  /**
+   * 
+   * 
+   * @type {string}
+   * @memberOf IViewConfig
+   */
   viewHandlerPath?: string;
 }
 
+/**
+ * 
+ * 
+ * @export
+ * @interface IViewRouterOptions
+ */
 export interface IViewRouterOptions {
+  /**
+   * 
+   * 
+   * @type {string}
+   * @memberOf IViewRouterOptions
+   */
   basePath?: string;
+  /**
+   * 
+   * 
+   * @type {string}
+   * @memberOf IViewRouterOptions
+   */
   configFilePath?: string;
+  /**
+   * 
+   * 
+   * 
+   * @memberOf IViewRouterOptions
+   */
   basicContentGenerator?: (req?: express.Request, res?: express.Response) => any;
 }
 
@@ -31,8 +120,23 @@ const DEFAULT_CONFIG_PATH = "vrconfig.json";
 
 class ViewRouter {
   private views: Map<string, IViewConfig> = new Map();
+  /**
+   * 
+   * 
+   * @static
+   * @type {string}
+   * @memberOf ViewRouter
+   */
   public static path: string = process.cwd();
 
+  /**
+   * Creates an instance of ViewRouter.
+   * 
+   * @param {IViewConfig[]} views
+   * @param {IViewRouterOptions} [options={}]
+   * 
+   * @memberOf ViewRouter
+   */
   constructor(views: IViewConfig[], private options: IViewRouterOptions = {}) {
     for (const view of views) {
       assert.ok(view.id, "View has no id");
@@ -49,6 +153,15 @@ class ViewRouter {
     }
   }
 
+  /**
+   * 
+   * 
+   * @param {express.Request} req
+   * @param {express.Response} res
+   * @param {express.NextFunction} next
+   * 
+   * @memberOf ViewRouter
+   */
   public async handle(req: express.Request, res: express.Response, next: express.NextFunction) {
     const view = this.views.get(req.path);
     if (!isNil(view)) {
@@ -58,7 +171,7 @@ class ViewRouter {
   }
 
   private async getView(req: express.Request, res: express.Response, viewConfig: IViewConfig): Promise<void> {
-    let contextImport: IViewConstructor | ContextFunction = null;
+    let contextImport: IViewConstructor<{}> | ContextFunction = null;
     try {
       contextImport = require(ViewRouter.getPath(
         isNil(viewConfig.viewHandlerPath) ? viewConfig.id : viewConfig.viewHandlerPath
@@ -70,7 +183,7 @@ class ViewRouter {
     const context = await ((isNil(contextImport)) ?
       this.getDefaultView(req, res) :
       (contextImport.prototype.constructor === contextImport) ?
-        this.handleAsClass(contextImport as IViewConstructor, req, res) :
+        this.handleAsClass(contextImport as IViewConstructor<{}>, req, res) :
         this.handleAsFunction(contextImport as ContextFunction, req, res));
 
     return new Promise<void>((resolve, reject) => {
@@ -85,8 +198,8 @@ class ViewRouter {
     });
   }
 
-  private async handleAsClass(viewConstructor: IViewConstructor, req: express.Request, res: express.Response): Promise<{}> {
-    const view: IView = new viewConstructor(req, res);
+  private async handleAsClass(viewConstructor: IViewConstructor<{}>, req: express.Request, res: express.Response): Promise<{}> {
+    const view: IView<{}> = new viewConstructor(req, res);
     if (!isNil(view.checkRouteValid) && await !view.checkRouteValid()) {
       // TODO add better clause, throw specific error
       // res.end();
@@ -102,7 +215,7 @@ class ViewRouter {
     return handlerFunction(req, res);
   }
 
-  private getDefaultView(req: express.Request, res: express.Response): IView {
+  private getDefaultView(req: express.Request, res: express.Response): IView<{}> {
     return {
       getContext: () => Promise.resolve(
         (isNil(this.options.basicContentGenerator)) ? void 0 : this.options.basicContentGenerator(req, res)
@@ -112,14 +225,38 @@ class ViewRouter {
     };
   }
 
+  /**
+   * 
+   * 
+   * @static
+   * @param {string} subpath
+   * @returns {string}
+   * 
+   * @memberOf ViewRouter
+   */
   public static getPath(subpath: string): string {
     return join(this.path, subpath);
   }
 }
 
-export function viewRouter(options?: IViewRouterOptions);
-export function viewRouter(views: IViewConfig[], options?: IViewRouterOptions);
-export function viewRouter(views: IViewConfig[], options?: IViewRouterOptions) {
+/**
+ * 
+ * 
+ * @export
+ * @param {IViewRouterOptions} [options]
+ * @returns {(req: express.Request, res: express.Response, next: express.NextFunction) => void}
+ */
+export function viewRouter(options?: IViewRouterOptions): (req: express.Request, res: express.Response, next: express.NextFunction) => void;
+/**
+ * 
+ * 
+ * @export
+ * @param {IViewConfig[]} views
+ * @param {IViewRouterOptions} [options]
+ * @returns {(req: express.Request, res: express.Response, next: express.NextFunction) => void}
+ */
+export function viewRouter(views: IViewConfig[], options?: IViewRouterOptions): (req: express.Request, res: express.Response, next: express.NextFunction) => void;
+export function viewRouter(views: IViewConfig[], options?: IViewRouterOptions): (req: express.Request, res: express.Response, next: express.NextFunction) => void {
   if (!isNil(options) && !isNil(options.basePath)) {
     ViewRouter.path = options.basePath;
   }
