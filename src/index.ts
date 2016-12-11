@@ -3,7 +3,7 @@ import * as assert from "assert";
 import { isNil } from "lodash";
 import { join, extname } from "path";
 
-export type ContextFunction = (req: express.Request, res: express.Response) => Promise<{}> | {};
+export type ContextFunction<T extends {}> = (req: express.Request, res: express.Response) => Promise<T> | T;
 /**
  * 
  * 
@@ -171,7 +171,7 @@ class ViewRouter {
   }
 
   private async getView(req: express.Request, res: express.Response, viewConfig: IViewConfig): Promise<void> {
-    let contextImport: IViewConstructor<{}> | ContextFunction = null;
+    let contextImport: IViewConstructor<{}> | ContextFunction<{}> = null;
     try {
       contextImport = require(ViewRouter.getPath(
         isNil(viewConfig.viewHandlerPath) ? viewConfig.id : viewConfig.viewHandlerPath
@@ -184,7 +184,7 @@ class ViewRouter {
       this.getDefaultView(req, res) :
       (contextImport.prototype.constructor === contextImport) ?
         this.handleAsClass(contextImport as IViewConstructor<{}>, req, res) :
-        this.handleAsFunction(contextImport as ContextFunction, req, res));
+        this.handleAsFunction(contextImport as ContextFunction<{}>, req, res));
 
     return new Promise<void>((resolve, reject) => {
       res.render((isNil(viewConfig.layout)) ? viewConfig.id : viewConfig.layout, context, (err, html) => {
@@ -211,7 +211,7 @@ class ViewRouter {
     return view.getContext();
   }
 
-  private async handleAsFunction(handlerFunction: ContextFunction, req: express.Request, res: express.Response): Promise<{}> {
+  private async handleAsFunction(handlerFunction: ContextFunction<{}>, req: express.Request, res: express.Response): Promise<{}> {
     return handlerFunction(req, res);
   }
 
