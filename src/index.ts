@@ -5,23 +5,26 @@ import { join, extname } from "path";
 
 export type ContextFunction<T extends {}> = (req: express.Request, res: express.Response) => Promise<T> | T;
 /**
+ * An interface for view handlers to export to `view-router`
  * 
  * 
  * @export
  * @interface IView
- * @template T extends {}
+ * @template {T extends {}} The context type to be returned for rendering in the view engine
  */
 export interface IView<T extends {}> {
   /**
+   * An optional method to implement, called at the beginning of the handle action.
+   * Used to determine if the current user's state is legal for the
+   * requested action.
    * 
-   * 
-   * @returns {(Promise<boolean> | boolean)}
+   * @returns {(Promise<boolean> | boolean)} A boolean signifiying if the route is legal
    * 
    * @memberOf IView
    */
   checkRouteValid?(): Promise<boolean> | boolean;
   /**
-   * 
+   * Returns the object with which to build the registered template.
    * 
    * @returns {(Promise<T> | T)}
    * 
@@ -29,7 +32,7 @@ export interface IView<T extends {}> {
    */
   getContext(): Promise<T> | T;
   /**
-   * 
+   * An optional method which allows setting a common context to all views (i.e the server root url)
    * 
    * @param {Partial<T>} ctx
    * 
@@ -39,7 +42,7 @@ export interface IView<T extends {}> {
 }
 
 /**
- * 
+ * The constructor to be exported to build the IView object
  * 
  * @export
  * @interface IViewConstructor
@@ -50,7 +53,7 @@ export interface IViewConstructor<T extends {}> {
 }
 
 /**
- * 
+ * A configuration object for defining views
  * 
  * @export
  * @interface IViewConfig
@@ -87,28 +90,33 @@ export interface IViewConfig {
 }
 
 /**
- * 
+ * A options object for initialising `view-router`
  * 
  * @export
  * @interface IViewRouterOptions
  */
 export interface IViewRouterOptions {
   /**
-   * 
+   * The base path to find view handlers from
+   * Defaults to `process.cwd()`
    * 
    * @type {string}
    * @memberOf IViewRouterOptions
    */
   basePath?: string;
   /**
-   * 
+   * A `.json` file to load which contains the `IViewConfig` definitions.
+   * Defaults to `vrconfig.json`.
+   * Only used if a `IViewConfig[]` is not passed as the first arguement when
+   * initialising `view-router`.
    * 
    * @type {string}
    * @memberOf IViewRouterOptions
    */
   configFilePath?: string;
   /**
-   * 
+   * A function called to supply a common context to all views which
+   * implement the `IView#setBasicContext` method.
    * 
    * 
    * @memberOf IViewRouterOptions
@@ -207,19 +215,21 @@ class ViewRouter {
 }
 
 /**
- * 
+ * A middle-ware function for express to handle routing of views through a 
+ * template engine
  * 
  * @export
- * @param {IViewRouterOptions} [options]
+ * @param {IViewRouterOptions} [options] An options configuration
  * @returns {(req: express.Request, res: express.Response, next: express.NextFunction) => void}
  */
 export function viewRouter(options?: IViewRouterOptions): (req: express.Request, res: express.Response, next: express.NextFunction) => void;
 /**
- * 
+ * A middle-ware function for express to handle routing of views through a 
+ * template engine
  * 
  * @export
- * @param {IViewConfig[]} views
- * @param {IViewRouterOptions} [options]
+ * @param {IViewConfig[]} views A array of routes to connect
+ * @param {IViewRouterOptions} [options] An options configuration
  * @returns {(req: express.Request, res: express.Response, next: express.NextFunction) => void}
  */
 export function viewRouter(views: IViewConfig[], options?: IViewRouterOptions): (req: express.Request, res: express.Response, next: express.NextFunction) => void;
