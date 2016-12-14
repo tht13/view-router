@@ -4,6 +4,7 @@ const ts = require("gulp-typescript");
 const del = require("del");
 const sourcemaps = require("gulp-sourcemaps");
 const path = require("path");
+const typedoc = require("gulp-typedoc");
 const tslint = require("gulp-tslint");
 
 
@@ -29,6 +30,27 @@ gulp.task("ts-compile", ["clean"], () =>
 );
 
 gulp.task("compile", ["ts-compile"]);
+
+gulp.task("typedoc", () =>
+    gulp.src(src)
+        .pipe(typedoc({
+            // TypeScript options (see typescript docs) 
+            module: "commonjs",
+            target: "es6",
+            includeDeclarations: true,
+
+            // Output options (see typedoc docs) 
+            out: "./docs",
+            json: "./docs.json",
+
+            // TypeDoc options (see typedoc docs) 
+            name: "view-router",
+            ignoreCompilerErrors: false,
+            version: true,
+            excludePrivate: true,
+            excludeExternals:true
+        }))
+);
 
 gulp.task("tslint", () =>
     gulp.src(src)

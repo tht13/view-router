@@ -1,5 +1,7 @@
 .vscode/symbols.json
 dist
+docs
+docs.json
 
 # Logs
 logs

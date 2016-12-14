@@ -34,7 +34,7 @@ export interface IView<T extends {}> {
    * 
    * @memberOf IView
    */
-  setBasicContext?(ctx: Partial<T>): void;
+  setBasicContext?(ctx: /*Partial<*/T/*>*/): void;
 }
 
 /**
