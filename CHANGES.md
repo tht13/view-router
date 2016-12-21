@@ -1,5 +1,10 @@
 # Changes
 
+## 0.2.2
+
+- update package.json (Thomas Townsend)
+- set views to null when single arg init is used (Thomas Townsend)
+
 ## 0.2.1
 
 - Remove test stage from package.json (Thomas Townsend)
