@@ -1,5 +1,9 @@
 # Changes
 
+## 0.2.3
+
+- Move interfaces back into index for single definition file (Thomas Townsend)
+
 ## 0.2.2
 
 - update package.json (Thomas Townsend)
