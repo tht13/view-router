@@ -116,6 +116,9 @@ export function viewRouter(options?: IViewRouterOptions): (req: express.Request,
  */
 export function viewRouter(views: IViewConfig[], options?: IViewRouterOptions): (req: express.Request, res: express.Response, next: express.NextFunction) => void;
 export function viewRouter(views: IViewConfig[], options?: IViewRouterOptions): (req: express.Request, res: express.Response, next: express.NextFunction) => void {
+  if (!Array.isArray(views)) {
+    options = views;
+  }
   if (!isNil(options) && !isNil(options.basePath)) {
     ViewRouter.path = options.basePath;
   }
