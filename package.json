@@ -4,9 +4,13 @@
   "description": "A view router for express.js where a config file is passed in and routes are automatically setup to connect rendered viewlets",
   "main": "dist/index.js",
   "scripts": {
+    "build": "node_modules/.bin/gulp build",
+    "pretest": "npm run build",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "prepublish": "npm run build",
-    "build": "node_modules/.bin/gulp build"
+    "preversion": "npm test",
+    "version": "node_modules/.bin/changes",
+    "postversion": "git push --follow-tags",
+    "prepublish": "npm run version"
   },
   "types": "dist/index.d.ts",
   "keywords": [
@@ -20,6 +24,7 @@
     "lodash": "^4.17.2"
   },
   "devDependencies": {
+    "@studio/changes": "^1.0.4",
     "@types/del": "^2.2.31",
     "@types/express": "^4.0.34",
     "@types/gulp": "^3.8.32",
