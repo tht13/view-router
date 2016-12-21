@@ -7,8 +7,8 @@
     "build": "node_modules/.bin/gulp build",
     "pretest": "npm run build",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "preversion": "npm test",
-    "version": "node_modules/.bin/changes",
+    "preversion": "npm run build",
+    "version": "changes",
     "postversion": "git push --follow-tags",
     "prepublish": "npm run version"
   },
