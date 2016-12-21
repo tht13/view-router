@@ -1,5 +1,6 @@
 src
 .vscode
 .gitignore
+debug.log
 gulpfile.js
 tsconfig.json
