@@ -12,6 +12,7 @@ class ViewRouter {
   public static path: string = process.cwd();
 
   constructor(views: IViewConfig[], private options: IViewRouterOptions = {}) {
+    assert.ok(Array.isArray(views), "Views is not an array");
     for (const view of views) {
       assert.ok(view.id, "View has no id");
       assert.ok(view.urlPath, "View has no url path");
