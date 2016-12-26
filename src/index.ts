@@ -6,32 +6,54 @@ import { join, extname } from "path";
 export type ContextFunction<T extends {}> = (req: express.Request, res: express.Response) => Promise<T> | T;
 
 const DEFAULT_CONFIG_PATH = "vrconfig.json";
+const DEFAULT_REQUEST_TYPE = "GET";
 
 class ViewRouter {
-  private views: Map<string, IViewConfig> = new Map();
+  private views: Map<[string, "GET" | "POST"], IViewConfig> = new Map();
   public static path: string = process.cwd();
 
   constructor(views: IViewConfig[], private options: IViewRouterOptions = {}) {
     assert.ok(Array.isArray(views), "Views is not an array");
     for (const view of views) {
+      if (isNil(view.requestType)) {
+        view.requestType = DEFAULT_REQUEST_TYPE;
+      } else {
+        switch (view.requestType.toUpperCase()) {
+          case "GET":
+          case "POST":
+            view.requestType = view.requestType.toUpperCase() as any;
+            break;
+          default:
+            view.requestType = DEFAULT_REQUEST_TYPE;
+        }
+      }
       assert.ok(view.id, "View has no id");
       assert.ok(view.urlPath, "View has no url path");
       if (view.urlPath.constructor === Array) {
         for (const path of view.urlPath) {
-          assert.equal(this.views.has(path), false);
-          this.views.set(path, view);
+          assert.equal(this.views.has([path, view.requestType]), false);
+          this.views.set([path, view.requestType], view);
         }
       } else {
-        assert.equal(this.views.has(view.urlPath as string), false);
-        this.views.set(view.urlPath as string, view);
+        assert.equal(this.views.has([view.urlPath as string, view.requestType]), false);
+        this.views.set([view.urlPath as string, view.requestType], view);
       }
     }
   }
 
+  private checkRequestType(type: string): boolean {
+    return type === "GET" || type === "POST";
+  }
+
   public async handle(req: express.Request, res: express.Response, next: express.NextFunction) {
-    const view = this.views.get(req.path);
-    if (!isNil(view)) {
-      await this.getView(req, res, view);
+    const requestType = req.method as any;
+    const view = this.views.get([req.path, requestType]);
+    if (!isNil(view) && this.checkRequestType(requestType)) {
+      if (view.requestType === "GET") {
+        await this.getView(req, res, view);
+      } else {
+        await this.handlePOST(req, res, view);
+      }
     }
     next();
   }
@@ -89,6 +111,10 @@ class ViewRouter {
       setBasicContext: ctx => void 0,
       checkRouteValid: () => Promise.resolve(true)
     };
+  }
+
+  private async handlePOST(req: express.Request, res: express.Response, view: IViewConfig) {
+    
   }
 
   public static getPath(subpath: string): string {
@@ -155,7 +181,7 @@ export interface IView<T extends {}> {
    * 
    * @returns {(Promise<boolean> | boolean)} A boolean signifiying if the route is legal
    * 
-   * @memberOf IView
+   * @memberof IView
    */
   checkRouteValid?(): Promise<boolean> | boolean;
   /**
@@ -163,7 +189,7 @@ export interface IView<T extends {}> {
    * 
    * @returns {(Promise<T> | T)}
    * 
-   * @memberOf IView
+   * @memberof IView
    */
   getContext(): Promise<T> | T;
   /**
@@ -171,7 +197,7 @@ export interface IView<T extends {}> {
    * 
    * @param {Partial<T>} ctx
    * 
-   * @memberOf IView
+   * @memberof IView
    */
   setBasicContext?(ctx: Partial<T>): void;
 }
@@ -198,30 +224,37 @@ export interface IViewConfig {
    * 
    * 
    * @type {string}
-   * @memberOf IViewConfig
+   * @memberof IViewConfig
    */
   id: string;
   /**
    * 
    * 
    * @type {(string | string[])}
-   * @memberOf IViewConfig
+   * @memberof IViewConfig
    */
   urlPath: string | string[];
   /**
    * 
    * 
    * @type {string}
-   * @memberOf IViewConfig
+   * @memberof IViewConfig
    */
   layout?: string;
   /**
    * 
    * 
    * @type {string}
-   * @memberOf IViewConfig
+   * @memberof IViewConfig
    */
   viewHandlerPath?: string;
+  /**
+   * The HTTP request type, defaults to GET
+   * 
+   * @type {"GET" | "POST"}
+   * @memberof IViewConfig
+   */
+  requestType?: "GET" | "POST";
 }
 
 /**
@@ -236,7 +269,7 @@ export interface IViewRouterOptions {
    * Defaults to `process.cwd()`
    * 
    * @type {string}
-   * @memberOf IViewRouterOptions
+   * @memberof IViewRouterOptions
    */
   basePath?: string;
   /**
@@ -246,7 +279,7 @@ export interface IViewRouterOptions {
    * initialising `view-router`.
    * 
    * @type {string}
-   * @memberOf IViewRouterOptions
+   * @memberof IViewRouterOptions
    */
   configFilePath?: string;
   /**
@@ -254,7 +287,7 @@ export interface IViewRouterOptions {
    * implement the `IView#setBasicContext` method.
    * 
    * 
-   * @memberOf IViewRouterOptions
+   * @memberof IViewRouterOptions
    */
   basicContentGenerator?: (req?: express.Request, res?: express.Response) => any;
 }
