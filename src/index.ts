@@ -5,6 +5,8 @@ import { join, extname } from "path";
 
 export type ContextFunction<T extends {}> = (req: express.Request, res: express.Response) => Promise<T> | T;
 
+export type PostFunction = (req: express.Request, res: express.Response) => Promise<void> | void;
+
 const DEFAULT_CONFIG_PATH = "vrconfig.json";
 const DEFAULT_REQUEST_TYPE = "GET";
 
@@ -113,8 +115,30 @@ class ViewRouter {
     };
   }
 
-  private async handlePOST(req: express.Request, res: express.Response, view: IViewConfig) {
-    
+  private async handlePOST(req: express.Request, res: express.Response, viewConfig: IViewConfig) {
+    let contextImport: IHandlerConstructor | PostFunction = null;
+    try {
+      contextImport = require(ViewRouter.getPath(
+        isNil(viewConfig.viewHandlerPath) ? viewConfig.id : viewConfig.viewHandlerPath
+      )).default;
+    } catch (e) {
+      console.warn(`Failed to import ${viewConfig.id}`);
+    }
+
+    await ((isNil(contextImport)) ?
+      this.getDefaultHandler() :
+      (contextImport.prototype.constructor === contextImport) ?
+        new (contextImport as IHandlerConstructor)(req, res).handle() :
+        (contextImport as PostFunction)(req, res));
+
+  }
+
+  private getDefaultHandler(): IHandler {
+    return {
+      handle: () => {
+        return Promise.resolve();
+      }
+    };
   }
 
   public static getPath(subpath: string): string {
@@ -211,6 +235,33 @@ export interface IView<T extends {}> {
  */
 export interface IViewConstructor<T extends {}> {
   new (req: express.Request, res: express.Response): IView<T>;
+}
+
+/**
+ * 
+ * 
+ * @export
+ * @interface IHandlerConstructor
+ */
+export interface IHandlerConstructor {
+  new (req: express.Request, res: express.Response): IHandler;
+}
+
+/**
+ * 
+ * 
+ * @export
+ * @interface IHandler
+ */
+export interface IHandler {
+  /**
+   * 
+   * 
+   * @returns {Promise<void>}
+   * 
+   * @memberof IHandler
+   */
+  handle(): Promise<void>;
 }
 
 /**
